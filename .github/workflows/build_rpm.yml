@@ -32,7 +32,8 @@ jobs:
           libxkbfile-devel \
           intltool \
           perl \
-          libxslt  # Provides xsltproc
+          libxslt \
+          xorg-x11-util-macros
 
     - name: Setup RPM Build Tree
       run: |
