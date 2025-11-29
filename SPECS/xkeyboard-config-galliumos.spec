@@ -72,3 +72,8 @@ find %{buildroot} -name "*.la" -delete
 # All documentation and translation files
 %{_datadir}/locale/*
 %{_mandir}/man7/*
+
+%changelog
+* Sat Nov 29 2025 sihawken - 1.0.0-1
+- Initial Fedora package build for COPR, fetching source from release-1.0 tag.
+- Applied patches for Chromebook support.
