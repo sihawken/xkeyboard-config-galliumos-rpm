@@ -1,0 +1,69 @@
+name: Build RPM
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    name: Build RPM Package
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Install Build Dependencies
+      run: |
+        dnf -y update
+        # Install core RPM build tools
+        dnf -y install rpm-build rpmdevtools gcc make wget
+        
+        # Install dependencies listed in your .spec file
+        dnf -y install \
+          autoconf \
+          automake \
+          gettext \
+          libxml2-devel \
+          libxkbfile-devel \
+          intltool \
+          perl \
+          libxslt  # Provides xsltproc
+
+    - name: Setup RPM Build Tree
+      run: |
+        rpmdev-setuptree
+        # The tree is created at /github/home/rpmbuild (or similar depending on user)
+        # We need to move your files into this tree
+        
+        # Copy SPEC file
+        cp SPECS/*.spec ~/rpmbuild/SPECS/
+        
+        # Copy local patches from SOURCES
+        cp SOURCES/* ~/rpmbuild/SOURCES/
+
+    - name: Download Remote Sources
+      run: |
+        # 'spectool' parses the spec file and downloads Source0
+        # This handles the download of the xkeyboard-config tarball
+        spectool -g -R ~/rpmbuild/SPECS/xkeyboard-config-galliumos.spec
+        
+        # Move downloaded files to SOURCES directory
+        mv *.tar.gz ~/rpmbuild/SOURCES/ || true
+
+    - name: Build RPM
+      run: |
+        # Build Source and Binary RPMs
+        rpmbuild -ba ~/rpmbuild/SPECS/xkeyboard-config-galliumos.spec
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: rpm-packages
+        path: |
+          ~/rpmbuild/RPMS/**/*.rpm
+          ~/rpmbuild/SRPMS/*.rpm

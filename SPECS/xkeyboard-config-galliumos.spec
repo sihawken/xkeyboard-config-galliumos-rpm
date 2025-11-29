@@ -36,11 +36,8 @@ with custom keymap and model settings optimized for GalliumOS and
 Chromebook hardware, based on the GalliumOS/xkeyboard-config source.
 
 %prep
-# Unpack Source0 (the remote ZIP file).
-# The downloaded file is xkeyboard-config-release-1.0.zip, which unpacks
-# to a directory named xkeyboard-config-release-1.0. We use the -n flag
-# to specify that directory name.
-%setup -q -n xkeyboard-config-release-1.0
+# Unpack Source0
+%setup -q -n xkeyboard-config-%{git_commit}
 
 # The source comes from a git snapshot and is missing the generated
 # 'configure' script, so we must run autogen.sh.
@@ -75,9 +72,3 @@ find %{buildroot} -name "*.la" -delete
 # All documentation and translation files
 %{_datadir}/locale/*
 %{_mandir}/man7/*
-
-
-%changelog
-* Fri Nov 29 2025 Your Name <you@example.com> - 1.0.0-1
-- Initial Fedora package build for COPR, fetching source from release-1.0 tag.
-- Applied patches for Chromebook support.
