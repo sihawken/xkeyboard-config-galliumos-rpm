@@ -49,7 +49,32 @@ Chromebook hardware, based on the GalliumOS/xkeyboard-config source.
 
 # The source comes from a git snapshot and is missing the generated
 # 'configure' script, so we must run autogen.sh.
-sh autogen.sh
+# Create autogen.sh on the fly since it's missing in the release tarball
+cat << 'EOF' > autogen.sh
+#! /bin/sh
+
+srcdir=`dirname "$0"`
+test -z "$srcdir" && srcdir=.
+
+ORIGDIR=`pwd`
+cd "$srcdir"
+
+autopoint --force
+AUTOPOINT='intltoolize --automake --copy' autoreconf -v --install --force || exit 1
+
+# Git config is likely not needed for tarball builds, but kept for compatibility with the script
+git config --local --get format.subjectPrefix >/dev/null 2>&1 ||
+    git config --local format.subjectPrefix "PATCH xkeyboard-config"
+
+cd "$ORIGDIR" || exit $?
+if test -z "$NOCONFIGURE"; then
+    exec "$srcdir"/configure "$@"
+fi
+EOF
+
+# Make it executable and run it
+chmod +x autogen.sh
+NOCONFIGURE=1 ./autogen.sh
 
 # Apply all patches using the standard -p1 strip level
 %patch -P 1 -p1
