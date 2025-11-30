@@ -4,7 +4,7 @@
 # The name of your COPR package. Must be unique.
 Name:           xkeyboard-config-galliumos
 # The package version should reflect the source (release-1.0)
-Version:        2.44
+Version:        2.46
 Release:        1%{?dist}
 Summary:        X Keyboard Extension config data modified for GalliumOS/Chromebooks
 
@@ -16,11 +16,11 @@ Provides:       xkeyboard-config = %{version}-%{release}
 # Since this installs the same files, it conflicts with the stock package
 Conflicts:      xkeyboard-config
 
-%define git_commit      master
+%define git_commit      xkeyboard-config-2.46
 %define short_name      xkeyboard-config
 
 # Source0 fetches the archive of the defined git_commit.
-Source0:        https://github.com/GalliumOS/%{short_name}/archive/%{git_commit}/%{short_name}-%{git_commit}.tar.gz
+Source0:        https://gitlab.freedesktop.org/xkeyboard-config/%{short_name}/-/archive/%{git_commit}/%{short_name}-%{git_commit}.tar.gz
 
 # Custom patches (must be present in the SOURCES/ directory)
 Patch1:         chromebook-fixed.patch
