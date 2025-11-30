@@ -1,3 +1,6 @@
+# Disable debug package
+%global debug_package %{nil}
+
 # The name of your COPR package. Must be unique.
 Name:           xkeyboard-config-galliumos
 # The package version should reflect the source (release-1.0)
