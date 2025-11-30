@@ -200,17 +200,16 @@
          <vendor>Generic</vendor>
 --- a/rules/evdev.m_k.part
 +++ b/rules/evdev.m_k.part
-@@ -2,4 +2,10 @@
-   applealu_jis	=	evdev+macintosh(jisevdev)
-   olpc          =       evdev+olpc(olpc)
-   olpcm         =       evdev+olpc(olpcm)
+@@ -4,3 +4,9 @@
+  olpc          =       evdev+olpc(olpc)
+  olpcm         =       evdev+olpc(olpcm)
 +  chromebook_m  =       evdev+chromebook_m(media)
 +  chromebook_m_ralt  =  evdev+chromebook_m(media)
 +  chromebook_falco_m  = evdev+chromebook_m_falco(media)
 +  chromebook_falco  = evdev+chromebook_falco(fkeys)
 +  chromebook_falco_ralt  = evdev+chromebook_falco(fkeys)
 +  chromebook_no_m  =    evdev+chromebook_m(media)
-   *		=	evdev
+  * =    evdev
 --- a/rules/evdev.m_s.part
 +++ b/rules/evdev.m_s.part
 @@ -1,4 +1,12 @@
