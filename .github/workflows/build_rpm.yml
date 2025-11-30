@@ -1,8 +1,26 @@
-steps:
+name: Build RPM
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build RPM Package
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+
+    steps:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    # 1. Capture the short commit hash using GitHub Context (No git required)
+    # 1. Capture the short commit hash (e.g. "a1b2c3d")
     - name: Get Short SHA
       id: vars
       run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
@@ -10,8 +28,8 @@ steps:
     - name: Install Build Dependencies
       run: |
         dnf -y update
-        # Added 'git' here just in case
-        dnf -y install rpm-build rpmdevtools gcc make wget git
+        # Install core RPM build tools
+        dnf -y install rpm-build rpmdevtools gcc make wget
         
         # Install dependencies listed in your .spec file
         dnf -y install \
@@ -28,22 +46,27 @@ steps:
     - name: Setup RPM Build Tree
       run: |
         rpmdev-setuptree
+        # The tree is created at /github/home/rpmbuild (or similar depending on user)
+        # We need to move your files into this tree
+        
+        # Copy SPEC file
         cp SPECS/*.spec ~/rpmbuild/SPECS/
+        
+        # Copy local patches from SOURCES
         cp SOURCES/* ~/rpmbuild/SOURCES/
-
-    # 2. Modify the SPEC file to include the commit hash in the Release field
-    # This ensures your RPM filename includes the hash (e.g. xkeyboard...git1a2b3c.rpm)
-    - name: Update Spec Release
-      run: |
-        sed -i "s/^Release:.*/Release:        1.git${{ env.SHORT_SHA }}%{?dist}/" ~/rpmbuild/SPECS/xkeyboard-config-galliumos.spec
 
     - name: Download Remote Sources
       run: |
+        # 'spectool' parses the spec file and downloads Source0
+        # This handles the download of the xkeyboard-config tarball
         spectool -g -R ~/rpmbuild/SPECS/xkeyboard-config-galliumos.spec
+        
+        # Move downloaded files to SOURCES directory
         mv *.tar.gz ~/rpmbuild/SOURCES/ || true
 
     - name: Build RPM
       run: |
+        # Build Source and Binary RPMs
         rpmbuild -ba ~/rpmbuild/SPECS/xkeyboard-config-galliumos.spec
 
     - name: Upload Artifacts
@@ -54,8 +77,9 @@ steps:
           ~/rpmbuild/RPMS/**/*.rpm
           ~/rpmbuild/SRPMS/*.rpm
 
+    # 3. Create a GitHub Release named after the commit hash
     - name: Create Release
-      # Only release on pushes to main
+      # Only release on pushes to main, not on pull requests
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
       uses: softprops/action-gh-release@v1
       with:
