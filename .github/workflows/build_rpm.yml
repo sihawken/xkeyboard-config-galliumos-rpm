@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main", "master" ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build RPM Package
@@ -16,6 +19,11 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
+
+    # 1. Capture the short commit hash (e.g. "a1b2c3d")
+    - name: Get Short SHA
+      id: vars
+      run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
     - name: Install Build Dependencies
       run: |
@@ -64,7 +72,21 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: rpm-packages
+        name: rpm-packages-${{ env.SHORT_SHA }}
         path: |
           ~/rpmbuild/RPMS/**/*.rpm
           ~/rpmbuild/SRPMS/*.rpm
+
+    # 3. Create a GitHub Release named after the commit hash
+    - name: Create Release
+      # Only release on pushes to main, not on pull requests
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ env.SHORT_SHA }}
+        name: Build ${{ env.SHORT_SHA }}
+        files: |
+          /github/home/rpmbuild/RPMS/**/*.rpm
+          /github/home/rpmbuild/SRPMS/*.rpm
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
