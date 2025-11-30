@@ -29,14 +29,18 @@ Patch3:         fix-typo.diff
 Patch4:         revert-goodmap-badmap-for-apple.diff
 
 # Standard Build Dependencies for xkeyboard-config
-BuildRequires:  autoconf
-BuildRequires:  automake
 BuildRequires:  gettext
 BuildRequires:  pkgconfig(libxml-2.0)
 BuildRequires:  pkgconfig(xkbfile)
-BuildRequires:  intltool
 BuildRequires:  perl
 BuildRequires:  xsltproc
+BuildRequires:  meson
+BuildRequires:  ninja-build
+BuildRequires:  gcc
+BuildRequires:  gettext
+BuildRequires:  libxslt
+# git-core is sometimes needed if the build script checks for git
+BuildRequires:  git-core
 
 %description
 This package contains X Keyboard Extension (XKB) configuration data
@@ -45,35 +49,15 @@ Chromebook hardware, based on the GalliumOS/xkeyboard-config source.
 
 %prep
 # Unpack Source0
-%setup -q -n xkeyboard-config-%{git_commit}
+# (Note: Ensure your -n flag matches the directory structure of the new tarball as discussed previously)
+%setup -q -n %{short_name}-%{git_commit}-<HASH>
 
-# The source comes from a git snapshot and is missing the generated
-# 'configure' script, so we must run autogen.sh.
-# Create autogen.sh on the fly since it's missing in the release tarball
-cat << 'EOF' > autogen.sh
-#! /bin/sh
-
-srcdir=`dirname "$0"`
-test -z "$srcdir" && srcdir=.
-
-ORIGDIR=`pwd`
-cd "$srcdir"
-
-autopoint --force
-AUTOPOINT='intltoolize --automake --copy' autoreconf -v --install --force || exit 1
-
-# Git config is likely not needed for tarball builds, but kept for compatibility with the script
-git config --local --get format.subjectPrefix >/dev/null 2>&1 ||
-    git config --local format.subjectPrefix "PATCH xkeyboard-config"
-
-cd "$ORIGDIR" || exit $?
-if test -z "$NOCONFIGURE"; then
-    exec "$srcdir"/configure "$@"
-fi
-EOF
-
-# Make it executable and run it
+# Copy autogen.sh from SOURCES to the current build directory
+cp %{SOURCE1} autogen.sh
 chmod +x autogen.sh
+
+# Run autogen.sh
+# We use NOCONFIGURE=1 because the %build section handles the configure step normally
 NOCONFIGURE=1 ./autogen.sh
 
 # Apply all patches using the standard -p1 strip level
@@ -82,12 +66,10 @@ NOCONFIGURE=1 ./autogen.sh
 %patch -P 3 -p1
 %patch -P 4 -p1
 
-
 %build
-# Standard Autotools build process
-%configure
-%make_build
-
+# Meson build process
+%meson
+%meson_build
 
 %install
 # Install files into the temporary build root
@@ -95,7 +77,6 @@ NOCONFIGURE=1 ./autogen.sh
 
 # Clean up unnecessary files
 find %{buildroot} -name "*.la" -delete
-
 
 %files
 %license COPYING
