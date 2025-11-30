@@ -27,6 +27,12 @@ jobs:
 
     - name: Install Build Dependencies
       run: |
+        # This macro tells RPM (and DNF) not to load the SELinux plugin
+        # This prevents the "SELinux enabled, but no policy found" error
+        
+        mkdir -p /etc/rpm/macros.d
+        echo "%__transaction_selinux %{nil}" > /etc/rpm/macros.d/macros.disable-selinux
+        
         dnf -y update
 
         # Install core RPM build tools
