@@ -1,5 +1,8 @@
 # Disable debug package
 %global debug_package %{nil}
+# Disable SELinux for this package
+%global _selinux_file_contexts %{nil}
+%global _install_file_context_path %{nil}
 
 # The name of your COPR package. Must be unique.
 Name:           xkeyboard-config-galliumos

@@ -29,10 +29,6 @@ jobs:
       run: |
         dnf -y update
 
-        # FIX: Install SELinux policies to prevent "no policy found" errors
-        # This bridges the gap between the host kernel and the container
-        dnf -y install selinux-policy-targeted policycoreutils
-
         # Install core RPM build tools
         dnf -y install rpm-build rpmdevtools gcc make wget
         
