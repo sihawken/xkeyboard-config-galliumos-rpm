@@ -37,6 +37,7 @@ BuildRequires:  pkgconfig(xkbfile)
 BuildRequires:  intltool
 BuildRequires:  perl
 BuildRequires:  xsltproc
+BuildRequires:  xorg-x11-util-macros
 
 %description
 This package contains X Keyboard Extension (XKB) configuration data
